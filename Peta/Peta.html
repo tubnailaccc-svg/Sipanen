@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -11,6 +11,10 @@
         <link rel="stylesheet" href="css/qgis2web.2wecss">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
         <link rel="stylesheet" href="css/leaflet.photon.css">
+        
+        <!-- Bootstrap CSS untuk styling -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        
         <style>
         html, body, #map {
             width: 100%;
@@ -18,28 +22,300 @@
             padding: 0;
             margin: 0;
         }
+        
+        /* Tombol Kembali */
+        .btn-kembali {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 9999;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: 1px solid #ddd;
+            transition: all 0.3s;
+        }
+        
+        .btn-kembali:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        
+        /* Search Sidebar */
+        .search-sidebar {
+            position: absolute;
+            top: 20px;
+            left: 100px;  /* Digeser 80px ke kanan */
+            z-index: 9998;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 20px;
+            width: 350px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .search-sidebar {
+                width: calc(100% - 40px);
+                max-height: 200px;
+                top: 10px;
+                left: 10px;  /* Kembali normal di mobile */
+                padding: 15px;
+            }
+        }
+        
+        .search-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #27ae60;
+        }
+        
+        .search-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .close-search {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0;
+        }
+        
+        /* Search Box */
+        .search-box {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #27ae60;
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+        }
+        
+        /* Filter Buttons */
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 6px 12px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.active {
+            background: #27ae60;
+            color: white;
+            border-color: #27ae60;
+        }
+        
+        .filter-btn:hover:not(.active) {
+            background: #e9ecef;
+        }
+        
+        /* Search Results */
+        .search-results {
+            max-height: 300px;
+            overflow-y: auto;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .search-results {
+                max-height: 150px;
+            }
+        }
+        
+        .result-item {
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .result-item:hover {
+            transform: translateX(3px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            border-left: 3px solid #27ae60;
+        }
+        
+        .result-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+        
+        .result-details {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .result-details span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+        
+        /* Toggle Search Button */
+        .toggle-search {
+            position: absolute;
+            top: 20px;
+            left: 60px;  /* Digeser 80px ke kanan, sama dengan sidebar */
+            z-index: 9997;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            transition: all 0.3s;
+        }
+        
+        .toggle-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .toggle-search {
+                top: 10px;
+                left: 10px;  /* Kembali normal di mobile */
+                width: calc(100% - 20px);
+            }
+        }
+        
+        /* Hide sidebar initially */
+        .search-sidebar.hidden {
+            transform: translateX(-400px);
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .search-sidebar.hidden {
+                transform: translateX(-100%);
+            }
+        }
         </style>
-        <title></title>
+        <title>Peta LP2B Kabupaten Cirebon</title>
     </head>
     <body>
-      <a href="../index.html"
-   style="
-       position: absolute;
-       bottom: 10px;
-       left: 10px;
-       z-index: 9999;
-       background: white;
-       padding: 6px 10px;
-       border-radius: 4px;
-       text-decoration: none;
-       color: black;
-       font-weight: bold;
-       box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-   ">
-   ← Kembali
-</a>
-        <div id="map">
+        <!-- Toggle Search Button -->
+        <button class="toggle-search" id="toggleSearchBtn">
+            <i class="fas fa-search"></i>
+            Cari Lokasi
+        </button>
+        
+        <!-- Search Sidebar -->
+        <div class="search-sidebar hidden" id="searchSidebar">
+            <div class="search-header">
+                <div class="search-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Pencarian Lahan Pertanian
+                </div>
+                <button class="close-search" id="closeSearchBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-input" 
+                    placeholder="Cari kecamatan, desa, atau nama lahan..."
+                    autocomplete="off"
+                >
+            </div>
+            
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">Semua</button>
+                <button class="filter-btn" data-filter="kecamatan">Kecamatan</button>
+                <button class="filter-btn" data-filter="desa">Desa</button>
+                <button class="filter-btn" data-filter="nama">Nama Lahan</button>
+            </div>
+            
+            <div class="search-results" id="searchResults">
+                <div class="no-results">
+                    <i class="fas fa-search fa-lg mb-2"></i>
+                    <p>Masukkan kata kunci untuk mencari</p>
+                </div>
+            </div>
         </div>
+        
+        <!-- Back Button -->
+        <a href="index.html" class="btn-kembali">
+            <i class="fas fa-arrow-left"></i> Kembali ke Beranda
+        </a>
+        
+        <div id="map"></div>
+        
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
         <script src="js/L.Control.Layers.Tree.min.js"></script>
@@ -52,6 +328,10 @@
         <script src="js/labels.js"></script>
         <script src="js/leaflet.photon.js"></script>
         <script src="data/LahanPertanianPanganBerkelanjutan_1.js"></script>
+        
+        <!-- Bootstrap JS (optional) -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        
         <script>
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
@@ -59,7 +339,176 @@
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
-        // remove popup's row if "visible-with-data"
+        
+        // Store all features for searching
+        var allFeatures = [];
+        
+        // Function to initialize search data
+        function initializeSearchData() {
+            allFeatures = json_LahanPertanianPanganBerkelanjutan_1.features || [];
+            
+            allFeatures.forEach(function(feature) {
+                // Store search data on feature
+                feature.searchData = {
+                    kecamatan: (feature.properties.Kecamatan || '').toLowerCase(),
+                    desa: (feature.properties.Desa || '').toLowerCase(),
+                    nama: (feature.properties.Name || '').toLowerCase(),
+                    fullText: ((feature.properties.Kecamatan || '') + ' ' + 
+                               (feature.properties.Desa || '') + ' ' + 
+                               (feature.properties.Name || '')).toLowerCase()
+                };
+            });
+        }
+        
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        
+        let currentFilter = 'all';
+        
+        // Filter button event listeners
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentFilter = button.dataset.filter;
+                performSearch(searchInput.value);
+            });
+        });
+        
+        // Search function
+        function performSearch(query) {
+            const searchTerm = query.toLowerCase().trim();
+            
+            // Clear previous results
+            searchResults.innerHTML = '';
+            
+            if (!searchTerm) {
+                searchResults.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search fa-lg mb-2"></i>
+                        <p>Masukkan kata kunci untuk mencari</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Filter features based on search term and current filter
+            const filteredFeatures = allFeatures.filter(feature => {
+                const { kecamatan, desa, nama, fullText } = feature.searchData;
+                
+                switch(currentFilter) {
+                    case 'kecamatan':
+                        return kecamatan.includes(searchTerm);
+                    case 'desa':
+                        return desa.includes(searchTerm);
+                    case 'nama':
+                        return nama.includes(searchTerm);
+                    default: // 'all'
+                        return fullText.includes(searchTerm) || 
+                               kecamatan.includes(searchTerm) || 
+                               desa.includes(searchTerm) ||
+                               nama.includes(searchTerm);
+                }
+            });
+            
+            // Display results
+            if (filteredFeatures.length === 0) {
+                searchResults.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-map-marker-alt fa-lg mb-2"></i>
+                        <p>Tidak ditemukan lahan dengan kata kunci "${query}"</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Limit results to 50 for performance
+            const displayFeatures = filteredFeatures.slice(0, 50);
+            
+            // Create result items
+            displayFeatures.forEach((feature, index) => {
+                const properties = feature.properties;
+                
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.dataset.index = index;
+                resultItem.innerHTML = `
+                    <div class="result-title">${properties.Name || 'Tidak ada nama'}</div>
+                    <div class="result-details">
+                        <span><i class="fas fa-map"></i> ${properties.Kecamatan || '-'}</span>
+                        <span><i class="fas fa-home"></i> ${properties.Desa || '-'}</span>
+                        <span><i class="fas fa-ruler-combined"></i> ${(properties.Luas || 0).toLocaleString()} ha</span>
+                    </div>
+                `;
+                
+                // Add click event to zoom to location
+                resultItem.addEventListener('click', () => {
+                    const bounds = layer_LahanPertanianPanganBerkelanjutan_1.getBounds();
+                    if (bounds.isValid()) {
+                        map.fitBounds(bounds);
+                    }
+                    
+                    // Highlight the feature
+                    if (feature.layer) {
+                        map.fitBounds(feature.layer.getBounds());
+                        feature.layer.fire('click');
+                    }
+                    
+                    // Close sidebar on mobile
+                    if (window.innerWidth <= 768) {
+                        toggleSearchSidebar();
+                    }
+                });
+                
+                searchResults.appendChild(resultItem);
+            });
+            
+            // Show more results indicator if there are more
+            if (filteredFeatures.length > 50) {
+                const moreItem = document.createElement('div');
+                moreItem.className = 'no-results';
+                moreItem.innerHTML = `<p>+ ${filteredFeatures.length - 50} hasil lainnya...</p>`;
+                searchResults.appendChild(moreItem);
+            }
+        }
+        
+        // Search input event listener with debounce
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                performSearch(e.target.value);
+            }, 300);
+        });
+        
+        // Sidebar toggle functionality
+        const toggleSearchBtn = document.getElementById('toggleSearchBtn');
+        const closeSearchBtn = document.getElementById('closeSearchBtn');
+        const searchSidebar = document.getElementById('searchSidebar');
+        
+        function toggleSearchSidebar() {
+            searchSidebar.classList.toggle('hidden');
+            if (!searchSidebar.classList.contains('hidden')) {
+                searchInput.focus();
+            }
+        }
+        
+        toggleSearchBtn.addEventListener('click', toggleSearchSidebar);
+        closeSearchBtn.addEventListener('click', toggleSearchSidebar);
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && 
+                !searchSidebar.contains(e.target) && 
+                !toggleSearchBtn.contains(e.target) &&
+                !searchSidebar.classList.contains('hidden')) {
+                toggleSearchSidebar();
+            }
+        });
+        
+        // Remove popup's row if "visible-with-data"
         function removeEmptyRowsFromPopupContent(content, feature) {
          var tempDiv = document.createElement('div');
          tempDiv.innerHTML = content;
@@ -73,7 +522,8 @@
          }
          return tempDiv.innerHTML;
         }
-        // modify popup if contains media
+        
+        // Modify popup if contains media
         function addClassToPopupIfMedia(content, popup) {
             var tempDiv = document.createElement('div');
             tempDiv.innerHTML = content;
@@ -105,7 +555,6 @@
                     video.style.maxWidth = "60vw";
                     imgTd.parentNode.replaceChild(video, imgTd);
                     popup._contentNode.classList.add('media');
-                    // Aggiorna il popup quando il video carica i metadati
                     video.addEventListener('loadedmetadata', function() {
                         popup.update();
                     });
@@ -120,14 +569,19 @@
                 popup._contentNode.classList.remove('media');
             }
         }
+        
         var zoomControl = L.control.zoom({
             position: 'topleft'
         }).addTo(map);
+        
         var bounds_group = new L.featureGroup([]);
+        
         function setBounds() {
         }
+        
         map.createPane('pane_GoogleSatellite_0');
         map.getPane('pane_GoogleSatellite_0').style.zIndex = 400;
+        
         var layer_GoogleSatellite_0 = L.tileLayer('https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
             pane: 'pane_GoogleSatellite_0',
             opacity: 1.0,
@@ -137,9 +591,17 @@
             minNativeZoom: 0,
             maxNativeZoom: 20
         });
+        
         layer_GoogleSatellite_0;
         map.addLayer(layer_GoogleSatellite_0);
+        
+        // Store layer reference globally
+        var layer_LahanPertanianPanganBerkelanjutan_1;
+        
         function pop_LahanPertanianPanganBerkelanjutan_1(feature, layer) {
+            // Store layer reference on feature for search
+            feature.layer = layer;
+            
             var popupContent = '<table>\
                     <tr>\
                         <th scope="row">Name</th>\
@@ -158,11 +620,12 @@
                         <td class="visible-with-data" id="Kecamatan">' + (feature.properties['Kecamatan'] !== null ? autolinker.link(String(feature.properties['Kecamatan']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
+                
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
+            layer.on('popupopen', function(e) {
+                addClassToPopupIfMedia(content, e.popup);
+            });
+            layer.bindPopup(content, { maxHeight: 400 });
         }
 
         function style_LahanPertanianPanganBerkelanjutan_1_0() {
@@ -180,10 +643,12 @@
                 interactive: true,
             }
         }
+        
         map.createPane('pane_LahanPertanianPanganBerkelanjutan_1');
         map.getPane('pane_LahanPertanianPanganBerkelanjutan_1').style.zIndex = 401;
         map.getPane('pane_LahanPertanianPanganBerkelanjutan_1').style['mix-blend-mode'] = 'normal';
-        var layer_LahanPertanianPanganBerkelanjutan_1 = new L.geoJson(json_LahanPertanianPanganBerkelanjutan_1, {
+        
+        layer_LahanPertanianPanganBerkelanjutan_1 = new L.geoJson(json_LahanPertanianPanganBerkelanjutan_1, {
             attribution: '',
             interactive: true,
             dataVar: 'json_LahanPertanianPanganBerkelanjutan_1',
@@ -192,22 +657,40 @@
             onEachFeature: pop_LahanPertanianPanganBerkelanjutan_1,
             style: style_LahanPertanianPanganBerkelanjutan_1_0,
         });
+        
         bounds_group.addLayer(layer_LahanPertanianPanganBerkelanjutan_1);
         map.addLayer(layer_LahanPertanianPanganBerkelanjutan_1);
+        
         var overlaysTree = [
             {label: '<img src="legend/LahanPertanianPanganBerkelanjutan_1.png" /> Lahan Pertanian Pangan Berkelanjutan', layer: layer_LahanPertanianPanganBerkelanjutan_1},
-            {label: "Google Satellite", layer: layer_GoogleSatellite_0},]
+            {label: "Google Satellite", layer: layer_GoogleSatellite_0},
+        ];
+        
         var lay = L.control.layers.tree(null, overlaysTree,{
-            //namedToggle: true,
-            //selectorBack: false,
-            //closedSymbol: '&#8862; &#x1f5c0;',
-            //openedSymbol: '&#8863; &#x1f5c1;',
-            //collapseAll: 'Collapse all',
-            //expandAll: 'Expand all',
             collapsed: true,
         });
+        
         lay.addTo(map);
         setBounds();
+        
+        // Initialize search data after layers are loaded
+        setTimeout(function() {
+            initializeSearchData();
+        }, 100);
+        
+        // Add keyboard shortcut for search (Ctrl+F or Cmd+F)
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                toggleSearchSidebar();
+                searchInput.focus();
+            }
+            
+            // Escape key closes search sidebar
+            if (e.key === 'Escape' && !searchSidebar.classList.contains('hidden')) {
+                toggleSearchSidebar();
+            }
+        });
         </script>        
     </body>
 </html>
